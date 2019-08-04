@@ -7,7 +7,7 @@ import {
 import SignIn from './pages/SignIn';
 import SignUp from './pages/Signup';
 
-import Dashboard from './pages/Dashboard';
+import Feed from './pages/Feed';
 import Attendance from './pages/Attendance';
 import Profile from './pages/Profile';
 
@@ -21,7 +21,7 @@ export default (isSigned = false) =>
         }),
         App: createBottomTabNavigator(
           {
-            Dashboard,
+            Feed,
             Attendance,
             Profile,
           },

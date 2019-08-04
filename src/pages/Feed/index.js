@@ -21,19 +21,25 @@ import {
   FormattedDate,
 } from './styles';
 
-function Dashboard({ isFocused }) {
+function Feed({ isFocused }) {
   const [meetups, setMeetups] = useState([]);
   const [date, setDate] = useState(new Date());
+  const [page, setPage] = useState(1);
 
   const dateFormatted = useMemo(
     () => format(date, "d 'de' MMMM", { locale: pt }),
     [date]
   );
 
-  async function loadMeetups(todayDate) {
+  async function loadMeetups(
+    todayDate,
+    currentPage = 1,
+    currentMeetups = null
+  ) {
     const response = await api.get('feed', {
       params: {
         date: todayDate,
+        page: currentPage,
       },
     });
 
@@ -42,11 +48,14 @@ function Dashboard({ isFocused }) {
       ...item,
     }));
 
-    setMeetups(feedMeetups);
+    setMeetups(
+      currentMeetups ? [...currentMeetups, ...feedMeetups] : feedMeetups
+    );
   }
 
   useEffect(() => {
     if (isFocused) {
+      setPage(1);
       loadMeetups(date);
     }
   }, [isFocused, date]);
@@ -65,16 +74,15 @@ function Dashboard({ isFocused }) {
     });
 
     setMeetups(
-      meetups.map(item => ({ ...item, attending: meetup.id === item.id }))
+      meetups.map(item =>
+        meetup.id === item.id ? { ...item, attending: true } : item
+      )
     );
   }
 
-  async function handleCancel(meetup) {
-    await api.delete(`attendances/${meetup.attendance[0].id}`);
-
-    setMeetups(
-      meetups.map(item => ({ ...item, attending: meetup.id !== item.id }))
-    );
+  async function handlePageChange() {
+    loadMeetups(date, page + 1, meetups);
+    await setPage(page + 1);
   }
 
   return (
@@ -98,22 +106,23 @@ function Dashboard({ isFocused }) {
           renderItem={({ item }) => (
             <Meetup
               data={item}
-              attending={item.attending}
+              disabled={item.attending}
               onAttend={handleAttend}
-              onCancel={handleCancel}
             />
           )}
+          onEndReachedThreshold={0}
+          onEndReached={handlePageChange}
         />
       </Container>
     </Background>
   );
 }
 
-Dashboard.navigationOptions = {
+Feed.navigationOptions = {
   tabBarLabel: 'Meetups',
   tabBarIcon: ({ tintColor }) => (
     <Icon name="format-list-bulleted" size={20} color={tintColor} />
   ),
 };
 
-export default withNavigationFocus(Dashboard);
+export default withNavigationFocus(Feed);

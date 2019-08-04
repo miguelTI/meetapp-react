@@ -49,3 +49,8 @@ export const CancelButton = styled(Button)`
   margin-top: 5px;
   background: #d44059;
 `;
+
+export const DisabledButton = styled(Button)`
+  margin-top: 5px;
+  background: #999;
+`;
